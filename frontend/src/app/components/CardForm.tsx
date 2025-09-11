@@ -208,16 +208,19 @@ export default function CardForm({
           )}
 
           {/* Buttons */}
-          <div className="flex justify-between mt-6">
-            {initial?.id && (
-              <button
-                type="button"
-                onClick={handleDelete}
-                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-400"
-              >
-                Delete
-              </button>
-            )}
+          {/* Buttons */}
+<div className="flex justify-between mt-6">
+  {initial?.id && (
+    <button
+      type="button"
+      onClick={handleDelete}
+      className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-400"
+    >
+      Delete
+    </button>
+  )}
+
+          <div className="flex gap-2">
             <button
               type="submit"
               disabled={isSubmitting}
@@ -225,7 +228,18 @@ export default function CardForm({
             >
               {isSubmitting ? "Saving..." : "Save"}
             </button>
+
+            {/* Back button */}
+            <button
+              type="button"
+              onClick={() => router.push("/cards")}
+              className="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-500"
+            >
+              Back
+            </button>
           </div>
+        </div>
+
         </form>
       </div>
     </div>

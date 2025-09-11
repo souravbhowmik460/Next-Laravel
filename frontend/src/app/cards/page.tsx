@@ -20,7 +20,7 @@ export default function CardsPage() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  // Load cards
+  // Load cards on mount
   useEffect(() => {
     const userId = localStorage.getItem("userId");
     if (!userId) {
@@ -36,6 +36,7 @@ export default function CardsPage() {
       .finally(() => setLoading(false));
   }, [router]);
 
+  // Delete card
   async function deleteCard(cardId: number) {
     if (!confirm("Are you sure you want to delete this card?")) return;
 
@@ -48,18 +49,33 @@ export default function CardsPage() {
     }
   }
 
+  // Logout function
+  function logout() {
+    localStorage.removeItem("userId"); // clear user session
+    router.push("/login"); // redirect to login
+    toast.success("Logged out successfully");
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <Toaster position="top-right" />
       <div className="max-w-5xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-800">Your Cards</h1>
-          <button
-            onClick={() => router.push("/cards/new")}
-            className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-500 transition"
-          >
-            + New Card
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => router.push("/cards/new")}
+              className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-500 transition"
+            >
+              + New Card
+            </button>
+            <button
+              onClick={logout}
+              className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition"
+            >
+              Logout
+            </button>
+          </div>
         </div>
 
         {loading ? (
@@ -83,9 +99,7 @@ export default function CardsPage() {
                   <p className="text-sm text-gray-500">
                     {c.profile?.designation || "No designation"}
                   </p>
-                  <p className="text-sm text-gray-400">
-                    {c.profile?.email || ""}
-                  </p>
+                  <p className="text-sm text-gray-400">{c.profile?.email || ""}</p>
                 </div>
 
                 <div className="mt-4 flex justify-between gap-2">
