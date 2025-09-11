@@ -13,6 +13,18 @@ Route::get('/ping', function () {
 // Auth routes
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/login', [AuthController::class, 'login']);
+Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/auth/change-password', [AuthController::class, 'changePassword'])
+    ->middleware('auth:sanctum');
+
+Route::get('/reset-password/{token}', function ($token) {
+    return response()->json([
+        'message' => 'Password reset placeholder',
+        'token' => $token,
+        'email' => request('email'),
+    ]);
+})->name('password.reset');
+
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
