@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateCardRequest;
 use App\Models\Card;
 use App\Services\CardService;
 use Illuminate\Http\Request;
+use Exception;
 
 class CardController extends Controller
 {
@@ -15,38 +16,53 @@ class CardController extends Controller
     public function __construct(CardService $cardService)
     {
         $this->cardService = $cardService;
-        
     }
 
     public function index($userId)
     {
-        $user = auth()->user();
-        if (!$user || (int)$user->id !== (int)$userId) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
-        }
+        try {
+            $user = auth()->user();
+            if (!$user || (int)$user->id !== (int)$userId) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            }
 
-        $cards = $this->cardService->getCardsByUser($userId);
-        return response()->json(['success' => true, 'data' => $cards]);
+            $cards = $this->cardService->getCardsByUser($userId);
+            return response()->json(['success' => true, 'data' => $cards]);
+        } catch (Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 
     public function store(StoreCardRequest $request)
     {
-        $user = auth()->user();
-        $card = $this->cardService->createCard($user, $request->validated());
-        return response()->json(['success' => true, 'data' => $card], 201);
+        try {
+            $user = auth()->user();
+            $card = $this->cardService->createCard($user, $request->validated());
+            return response()->json(['success' => true, 'data' => $card], 201);
+        } catch (Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 
     public function update(UpdateCardRequest $request, $cardId)
     {
-        $user = auth()->user();
-        $card = $this->cardService->updateCard($user, $cardId, $request->validated());
-        return response()->json(['success' => true, 'data' => $card]);
+        try {
+            $user = auth()->user();
+            $card = $this->cardService->updateCard($user, $cardId, $request->validated());
+            return response()->json(['success' => true, 'data' => $card]);
+        } catch (Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 
     public function destroy(Card $card)
     {
-        $user = auth()->user();
-        $this->cardService->deleteCard($user, $card);
-        return response()->json(['success' => true]);
+        try {
+            $user = auth()->user();
+            $this->cardService->deleteCard($user, $card);
+            return response()->json(['success' => true]);
+        } catch (Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 }
