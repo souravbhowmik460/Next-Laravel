@@ -42,6 +42,13 @@ class AuthController extends Controller
                     'token' => $token,
                 ]
             ], 201);
+
+        } catch (ValidationException $e) {
+            // keep validation errors as JSON
+            return response()->json([
+                'success' => false,
+                'errors' => $e->errors(),
+            ], 422);
         } catch (Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
@@ -55,11 +62,11 @@ class AuthController extends Controller
             ]);
 
             // Try sending reset link
-            $status = \Illuminate\Support\Facades\Password::sendResetLink(
+            $status = Password::sendResetLink(
                 $request->only('email')
             );
 
-            if ($status === \Illuminate\Support\Facades\Password::RESET_LINK_SENT) {
+            if (in_array($status, [Password::RESET_LINK_SENT, Password::RESET_THROTTLED])) {
                 return response()->json([
                     'success' => true,
                     'message' => 'Password reset link sent to your email',
@@ -68,8 +75,14 @@ class AuthController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Unable to send reset link',
+                'message' => __($status), // Laravel built-in message
             ], 500);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'errors' => $e->errors(),
+            ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -111,6 +124,13 @@ class AuthController extends Controller
                 'success' => true,
                 'message' => 'Password changed successfully'
             ]);
+
+        } catch (ValidationException $e) {
+            // keep validation errors as JSON
+            return response()->json([
+                'success' => false,
+                'errors' => $e->errors(),
+            ], 422);
         } catch (Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
@@ -120,14 +140,15 @@ class AuthController extends Controller
     {
         try {
             $data = $request->validate([
-                'email'=>'required|email',
-                'password'=>'required|string'
+                'email' => 'required|email',
+                'password' => 'required|string'
             ]);
 
             if (!auth()->attempt($data)) {
-                throw ValidationException::withMessages([
-                    'email' => ['Invalid credentials']
-                ]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid credentials'
+                ], 401);
             }
 
             $user = auth()->user();
@@ -144,10 +165,18 @@ class AuthController extends Controller
                     'token' => $token,
                 ]
             ]);
+
         } catch (ValidationException $e) {
-            throw $e; // keep validation errors as is
+            // keep validation errors as JSON
+            return response()->json([
+                'success' => false,
+                'errors' => $e->errors(),
+            ], 422);
         } catch (Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -156,6 +185,12 @@ class AuthController extends Controller
         try {
             $request->user()->currentAccessToken()->delete();
             return response()->json(['success' => true, 'message' => 'Logged out']);
+        } catch (ValidationException $e) {
+            // keep validation errors as JSON
+            return response()->json([
+                'success' => false,
+                'errors' => $e->errors(),
+            ], 422);
         } catch (Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
